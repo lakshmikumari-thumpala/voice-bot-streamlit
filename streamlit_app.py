@@ -59,7 +59,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-backend_default = os.getenv("BACKEND_URL", "http://localhost:8000/chat")
+backend_default = os.getenv("BACKEND_URL", "https://voice-bot-1-zwwg.onrender.com/chat")
 
 # ⬜ Centered white card for voice bot
 st.markdown('<div class="voice-card">', unsafe_allow_html=True)
@@ -192,3 +192,4 @@ st.markdown('</div>', unsafe_allow_html=True)
 # Footer
 st.markdown("---")
 st.markdown("Developed with ❤️ by Lakshmi Kumari.")
+
