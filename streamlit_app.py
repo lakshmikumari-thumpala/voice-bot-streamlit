@@ -8,7 +8,7 @@ st.set_page_config(page_title="Voice Chatbot", layout="centered")
 st.markdown("""
     <style>
         html, body, [data-testid="stAppViewContainer"] {
-            height: 150%;
+            height: 600px;
             margin: 0;
             padding: 0;
             background: linear-gradient(135deg, #b3e5fc 0%, #e0f7fa 40%, #ffffff 100%);
@@ -59,7 +59,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-backend_default = os.getenv("BACKEND_URL", "https://voice-bot-1-zwwg.onrender.com/chat")
+backend_default = os.getenv("BACKEND_URL", "http://localhost:8000/chat")
 
 # ⬜ Centered white card for voice bot
 st.markdown('<div class="voice-card">', unsafe_allow_html=True)
@@ -185,12 +185,10 @@ template = dedent("""
 """)
 
 html = template.replace('__BACKEND_URL__', backend_default)
-st.components.v1.html(html, height=520)
+st.components.v1.html(html, height=700, scrolling=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 # Footer
 st.markdown("---")
-st.markdown("Developed by Lakshmi Kumari.")
-
-
+st.markdown("Developed with ❤️ by Lakshmi Kumari.")
