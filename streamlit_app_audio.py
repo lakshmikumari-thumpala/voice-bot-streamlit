@@ -45,13 +45,18 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# 🌐 Backend Endpoint
 backend_default = os.getenv("BACKEND_URL", "https://voice-bot-1-zwwg.onrender.com/chat")
 
 # Voice Bot Card
 st.markdown('<div class="voice-card">', unsafe_allow_html=True)
-st.markdown("Click once to Start Recording, again to Stop. The recording plays back, then processes, and the response is shown below.")
+st.markdown("""
+Click once to **Start Recording**, again to **Stop**.  
+Your recording stays visible so you can replay anytime.  
+Starting a new recording clears the previous one.
+""")
 
-# 🎙️ HTML Recorder + JavaScript
+# 🎙️ HTML Recorder + Updated JavaScript
 template = dedent("""
 <!doctype html>
 <html>
@@ -75,6 +80,7 @@ template = dedent("""
         box-shadow: 0 4px 18px rgba(2,136,209,0.06);
         padding: 16px 20px;
     }
+    audio { width: 100%; margin-top: 10px; border-radius: 10px; }
   </style>
 </head>
 <body>
@@ -82,7 +88,7 @@ template = dedent("""
     <h2>🎤 Voice Chatbot</h2>
     <button id="recordButton">Start Recording</button>
     <div id="status" style="display:none;"></div>
-    <audio id="responseAudio" controls style="display:none; width:100%; margin-top:12px"></audio>
+    <div id="audioContainer"></div>
     <div id="response"></div>
   </div>
 
@@ -91,9 +97,11 @@ template = dedent("""
     const recordButton = document.getElementById('recordButton');
     const status = document.getElementById('status');
     const responseDiv = document.getElementById('response');
-    const responseAudio = document.getElementById('responseAudio');
+    const audioContainer = document.getElementById('audioContainer');
 
-    let mediaRecorder; let audioChunks = []; let isRecording = false;
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
 
     recordButton.addEventListener('click', async () => {
       if (isRecording) {
@@ -103,9 +111,9 @@ template = dedent("""
         return;
       }
 
+      // Clear previous audios and response
+      audioContainer.innerHTML = '';
       responseDiv.innerHTML = '';
-      responseAudio.style.display = 'none';
-      responseAudio.src = '';
       status.style.display = 'none';
 
       try {
@@ -117,49 +125,54 @@ template = dedent("""
 
         mediaRecorder.onstop = async () => {
           const blob = new Blob(audioChunks, { type: 'audio/webm' });
-
           const url = URL.createObjectURL(blob);
-          responseAudio.src = url;
-          responseAudio.style.display = 'block';
-          responseAudio.play();
+
+          // 🎧 User recorded audio
+          const userAudio = document.createElement('audio');
+          userAudio.src = url;
+          userAudio.controls = true;
+          userAudio.style.display = 'block';
+          audioContainer.appendChild(userAudio);
+          userAudio.play();
+
           status.style.display = 'block';
-          status.textContent = 'Playing your recording...';
+          status.textContent = 'Processing...';
 
-          responseAudio.onended = async () => {
-            status.textContent = 'Processing...';
-            responseAudio.style.display = 'none';
-            responseAudio.src = '';
+          const formData = new FormData();
+          formData.append('audio', blob, 'recording.webm');
 
-            const formData = new FormData();
-            formData.append('audio', blob, 'recording.webm');
+          try {
+            const res = await fetch(backend, { method: 'POST', body: formData });
+            const data = await res.json();
 
-            try {
-              const res = await fetch(backend, {
-                method: 'POST',
-                body: formData
-              });
+            responseDiv.innerHTML = data.response || 'No response';
 
-              const data = await res.json();
-              responseDiv.innerHTML = data.response || 'No response';
+            if (data.audio_base64) {
+              const binary = atob(data.audio_base64);
+              const bytes = new Uint8Array(binary.length);
+              for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+              const audioBlob = new Blob([bytes], { type: 'audio/mp3' });
+              const audioUrl = URL.createObjectURL(audioBlob);
 
-              if (data.audio_base64) {
-                const binary = atob(data.audio_base64);
-                const bytes = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i++) {
-                  bytes[i] = binary.charCodeAt(i);
-                }
-                const audioBlob = new Blob([bytes], { type: 'audio/mp3' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                responseAudio.src = audioUrl;
-                responseAudio.style.display = 'block';
-                responseAudio.play();
-              }
+              // 🎧 Bot response audio
+              const botLabel = document.createElement('div');
+              botLabel.innerHTML = "<b>🤖 Bot Reply:</b>";
+              botLabel.style.marginTop = '10px';
+              botLabel.style.color = '#015a8a';
 
-              status.style.display = 'none';
-            } catch (err) {
-              status.textContent = 'Error contacting backend: ' + err.message;
+              const botAudio = document.createElement('audio');
+              botAudio.src = audioUrl;
+              botAudio.controls = true;
+              botAudio.style.display = 'block';
+
+              audioContainer.appendChild(botLabel);
+              audioContainer.appendChild(botAudio);
             }
-          };
+
+            status.style.display = 'none';
+          } catch (err) {
+            status.textContent = 'Error contacting backend: ' + err.message;
+          }
         };
 
         mediaRecorder.start();
@@ -177,11 +190,12 @@ template = dedent("""
 </html>
 """)
 
+# Inject backend URL dynamically
 html = template.replace('__BACKEND_URL__', backend_default)
-st.components.v1.html(html, height=700, scrolling=True)
+st.components.v1.html(html, height=720, scrolling=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 # Footer
 st.markdown("---")
-st.markdown("Developed with ❤️ by Lakshmi Kumari.")
+st.markdown("Developed with ❤️ by **Lakshmi Kumari**.")
