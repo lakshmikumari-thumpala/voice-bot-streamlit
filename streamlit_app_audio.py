@@ -51,10 +51,23 @@ backend_default = os.getenv("BACKEND_URL", "https://voice-bot-1-zwwg.onrender.co
 # Voice Bot Card
 st.markdown('<div class="voice-card">', unsafe_allow_html=True)
 st.markdown("""
-Click once to **Start Recording**, again to **Stop**.  
-Your recording stays visible so you can replay anytime.  
-Starting a new recording clears the previous one.
-""")
+<div style="
+    text-align: center; 
+    background: rgba(255, 255, 255, 0.8); 
+    border-radius: 12px; 
+    box-shadow: 0 2px 8px rgba(2,136,209,0.08); 
+    padding: 12px 16px; 
+    margin: 15px auto; 
+    max-width: 600px;
+    line-height: 1.6;
+    color: #015a8a;
+    font-size: 1.05rem;">
+    🎙️ Click once to <b>Start Recording</b>, again to <b>Stop</b>.<br>
+    🔁 Your recording stays visible to replay anytime.<br>
+    🧹 Starting a new recording clears the previous one.
+</div>
+""", unsafe_allow_html=True)
+
 
 # 🎙️ HTML Recorder + Updated JavaScript
 template = dedent("""
